@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+    <body>
+        <div id="" class="col" style="width: 100%;">
+            <h2 style="text-align: center; margin-top: 80px;">Tabla Productos</h2>
+
+            {{#if prods}}
+            <table class="table table-striped table-bordered table-hover" style="width: 40%; margin: auto; text-align: center;">
+            <thead class="thead-dark">
+                <tr>
+                <th scope="col">Producto</th>
+                <th scope="col">Precio</th>
+                <th scope="col">Imagen</th>
+                </tr>
+            </thead>
+            <tbody id="">
+                {{#each prods}}
+                <tr>
+                <td>{{this.title}}</td>
+                <td>{{this.price}}</td>
+                <td><img style="width: 50px; height:50px" src={{this.thumbnail}} alt={{this.title}}></td>
+                </tr>
+                {{/each}}
+            </tbody>
+            </table>
+            {{else}}
+            <h1 style="text-align: center;">No hay productos</h1>
+            {{/if}}
+        </div> 
+    </body>
+</html> 
