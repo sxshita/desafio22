@@ -7,10 +7,12 @@ const MongoDbContainer = require('./container')
 const {MongoClient} = require('mongodb');
 
 let products;
+let msg;
 async function connectMongo() {
   try {
     const mongo = new MongoClient("mongodb+srv://sasha:coder.sasha@cluster0.ezluz.mongodb.net/?retryWrites=true&w=majority")
     products = new MongoDbContainer(mongo, 'ecommerce', 'products');
+    msg = new MongoDbContainer(mongo, 'chat', 'messages');
     await mongo.connect()
   }
   catch(err) {
@@ -18,8 +20,6 @@ async function connectMongo() {
   }
 }
 connectMongo();
-
-// const msg = new Container('messages');
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -66,7 +66,7 @@ const socketServer = new SocketServer(httpServer);
 
 socketServer.on('connection', async (socket) => {
   socket.emit('products', await products.getAll());
-  // socket.emit('messages', await msg.getAll());
+  socket.emit('messages', await msg.getAll());
 
   socket.on('new_product', async (product) => {
     try {
@@ -79,16 +79,16 @@ socketServer.on('connection', async (socket) => {
     }
     
   });
-  // socket.on('new_message', async (message) => {
-  //   try{
-  //     await msg.save(message);
-  //     let messages = await msg.getAll();
-  //     socketServer.sockets.emit('messages', messages);
-  //   }
-  //   catch(err){
-  //     console.log(`error: ${err}`);
-  //    }
-  // });
+  socket.on('new_message', async (message) => {
+    try{
+      await msg.save(message);
+      let messages = await msg.getAll();
+      socketServer.sockets.emit('messages', messages);
+    }
+    catch(err){
+      console.log(`error: ${err}`);
+     }
+  });
 
 });
 

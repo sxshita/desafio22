@@ -36,18 +36,19 @@ const enviarMensaje = (e) => {
     const age = document.getElementById('age').value;
     const alias = document.getElementById('alias').value;
     const avatar = document.getElementById('avatar').value;
+
     const text = document.getElementById('text').value;
     const date = String(new Date().toDateString() + ' ' + new Date().toLocaleTimeString())
     
     const author = { id, name, lastname, age, alias, avatar };
-    const message = { id: Math.floor(Math.random()* (22222 - 1 + 1) + 1), author, text, date}
+    const message = { author, text, date}
     socket.emit('new_message', message);
     
     return false;
 }
 
 const crearEtiquetasMensaje = (message) => {
-    const { id } = message.author;
+    const { id, avatar } = message.author;
     const { text, date } = message;
     
     return `
@@ -55,6 +56,7 @@ const crearEtiquetasMensaje = (message) => {
         <strong style='color:blue'>${id}</strong>
         <p style='color:brown'>${date}</p>
         <i style='color:green'>${text}</i>
+        <img style='width: 5%' src=${avatar} alt=${id}/>
     </div>
     `;
 }
