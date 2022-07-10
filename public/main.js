@@ -29,6 +29,14 @@ socket.on('products', (products) => agregarProductos(products));
 
 //-------------------------------------------------------------------
 
+const authorSchema = new normalizr.schema.Entity("authors",{},{idAttribute:"email"})
+const messageSchema = new normalizr.schema.Entity("messages",{
+    author:authorSchema
+})
+const arrayMessagesSchema = new normalizr.schema.Entity("arrayMessages",{
+    messages: [messageSchema]
+})
+
 const enviarMensaje = (e) => {
     const id = document.getElementById('id').value;
     const name = document.getElementById('name').value;
@@ -42,7 +50,7 @@ const enviarMensaje = (e) => {
     
     const author = { id, name, lastname, age, alias, avatar };
     const message = { author, text, date}
-    socket.emit('new_message', message);
+    socket.emit('new_message', (message));
     
     return false;
 }

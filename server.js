@@ -3,17 +3,19 @@ const express = require('express');
 const { engine } = require("express-handlebars");
 const { Server: HttpServer } = require('http');
 const { Server: SocketServer } = require('socket.io');
-const MongoDbContainer = require('./container')
+const MongoDbContainer = require('./container');
 const {MongoClient} = require('mongodb');
 
 let products;
 let msg;
+let messages;
 async function connectMongo() {
   try {
-    const mongo = new MongoClient("mongodb+srv://sasha:coder.sasha@cluster0.ezluz.mongodb.net/?retryWrites=true&w=majority")
+    const mongo = new MongoClient("mongodb+srv://sasha:coder.sasha@cluster0.ezluz.mongodb.net/?retryWrites=true&w=majority");
     products = new MongoDbContainer(mongo, 'ecommerce', 'products');
-    msg = new MongoDbContainer(mongo, 'chat', 'messages');
-    await mongo.connect()
+    // msg = new MongoDbContainer(mongo, 'chat', 'messages');
+    messages = new MongoDbContainer(mongo, 'chat', 'messages');
+    await mongo.connect();
   }
   catch(err) {
       console.log(`ERROR: ${err}`);
@@ -50,8 +52,8 @@ async function cargarProductos() {
   return products;
 }
 
-app.get('/', (req, res) => {
-  const prods = products.getAll();
+app.get('/', async (req, res) => {
+  const prods = await products.getAll();
   res.render('table', { prods });
 });
 
@@ -65,8 +67,10 @@ const httpServer = new HttpServer(app);
 const socketServer = new SocketServer(httpServer);
 
 socketServer.on('connection', async (socket) => {
+  const myMessages = await messages.getById(333);
+ 
   socket.emit('products', await products.getAll());
-  socket.emit('messages', await msg.getAll());
+  if(myMessages) socket.emit('messages', myMessages.messages);
 
   socket.on('new_product', async (product) => {
     try {
@@ -79,11 +83,13 @@ socketServer.on('connection', async (socket) => {
     }
     
   });
+
   socket.on('new_message', async (message) => {
-    try{
-      await msg.save(message);
-      let messages = await msg.getAll();
-      socketServer.sockets.emit('messages', messages);
+    try {
+      const arrayMessagesId = 333;
+      await messages.saveMessage(arrayMessagesId, message);
+      let arrayMessages = await messages.getById(arrayMessagesId);
+      socketServer.sockets.emit('messages', arrayMessages.messages);
     }
     catch(err){
       console.log(`error: ${err}`);
